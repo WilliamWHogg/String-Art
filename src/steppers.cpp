@@ -6,7 +6,7 @@
 #include <FastAccelStepper.h>
 #include <math.h>
 
-// ─── Runtime parameters (defaults from config.h) ───────────────────────────
+// ─── Runtime parameters (defaults from config.h) ───────────────────────────-
 uint16_t numPegs = DEFAULT_PEGS;
 double ttGearRatio = TT_GEAR_RATIO_DEFAULT;
 float ttBacklashDeg = TT_BACKLASH_DEG_DEFAULT;
