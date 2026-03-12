@@ -20,6 +20,12 @@ void setup()
 
 void loop()
 {
+  // Advance turntable overshoot state machine if active
+  if (turntableOvershootBusy())
+  {
+    turntableOvershootPoll();
+  }
+
   // Advance homing state machine if active
   if (threaderHomingBusy())
   {

@@ -20,11 +20,11 @@
 #define MOTOR_STEPS_PER_REV 200 // 1.8° per full step
 
 // Turntable
-#define TT_GEAR_RATIO_DEFAULT 16     // calibrated: 16-lobe cycloidal (nominal 16:1)
-#define TT_MICROSTEPS_DEFAULT 1      // full-step default (1/2/4/8/16/32)
-#define TT_SPEED_DEFAULT 1000        // steps/sec
-#define TT_ACCEL_DEFAULT 1500        // steps/sec²
-#define TT_BACKLASH_DEG_DEFAULT 0.0f // backlash compensation (degrees)
+#define TT_GEAR_RATIO_DEFAULT 16      // calibrated: 16-lobe cycloidal (nominal 16:1)
+#define TT_MICROSTEPS_DEFAULT 16      // full-step default (1/2/4/8/16/32)
+#define TT_SPEED_DEFAULT 1000         // steps/sec
+#define TT_ACCEL_DEFAULT 1500         // steps/sec²
+#define TT_OVERSHOOT_DEG_DEFAULT 2.0f // overshoot angle for CCW→CW approach (degrees)
 
 // Threader
 #define TH_MICROSTEPS_DEFAULT 16
@@ -33,8 +33,8 @@
 #define TH_HOME_SPEED 30            // steps/sec  (default homing speed)
 #define TH_HOME_BACKOFF 10          // steps to back off after switch trigger
 #define TH_UP_DEG_DEFAULT 5.0f      // threader "up" position (degrees from home)
-#define TH_CENTER_DEG_DEFAULT 16.0f // threader "center" position (degrees from home)
-#define TH_DOWN_DEG_DEFAULT 20.0f   // threader "down" position (degrees from home)
+#define TH_CENTER_DEG_DEFAULT 18.0f // threader "center" position (degrees from home)
+#define TH_DOWN_DEG_DEFAULT 22.0f   // threader "down" position (degrees from home)
 
 // ─── Debug / Execution Defaults ─────────────────────────────────────────────
 #define CMD_DELAY_DEFAULT 0.0f // inter-command delay (seconds)

@@ -104,7 +104,7 @@ static void handleConfigGet(AsyncWebServerRequest *req)
     JsonDocument doc;
     doc["pegs"] = numPegs;
     doc["ttGearRatio"] = ttGearRatio;
-    doc["ttBacklash"] = ttBacklashDeg;
+    doc["ttOvershoot"] = ttOvershootDeg;
     doc["ttMs"] = ttMicrosteps;
     doc["thMs"] = thMicrosteps;
     doc["ttSpeed"] = ttSpeed;
@@ -147,11 +147,11 @@ static void handleConfig(AsyncWebServerRequest *req, uint8_t *data, size_t len,
         if (v >= 0.1 && v <= 100.0)
             ttGearRatio = v;
     }
-    if (doc["ttBacklash"].is<float>())
+    if (doc["ttOvershoot"].is<float>())
     {
-        float v = doc["ttBacklash"];
-        if (v >= 0.0f && v <= 5.0f)
-            ttBacklashDeg = v;
+        float v = doc["ttOvershoot"];
+        if (v >= 0.0f && v <= 10.0f)
+            ttOvershootDeg = v;
     }
     if (doc["ttMs"].is<uint16_t>())
         ttMicrosteps = doc["ttMs"];

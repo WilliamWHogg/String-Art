@@ -41,6 +41,8 @@ bool threaderIsHomed();
 // ─── General ────────────────────────────────────────────────────────────────
 bool steppersMoving();          // true if either motor is still running
 void steppersPollLimitSwitch(); // call from loop() to log switch changes
+bool turntableOvershootBusy();  // true while overshoot sequence is in progress
+void turntableOvershootPoll();  // call every loop() iteration to advance overshoot
 
 // Runtime-adjustable parameters (call steppersRecalc() after changing microsteps/pegs)
 extern uint16_t numPegs;
@@ -51,7 +53,7 @@ extern uint32_t ttAccel; // steps/sec²
 extern uint32_t thSpeed;
 extern uint32_t thAccel;
 extern double ttGearRatio;   // turntable gear ratio (adjustable for calibration)
-extern float ttBacklashDeg;  // turntable backlash compensation (degrees)
+extern float ttOvershootDeg; // overshoot angle for CCW approach then CW finish (degrees)
 extern uint32_t thHomeSpeed; // homing speed (steps/sec)
 extern float thUpDeg;        // threader "up" position (degrees from home)
 extern float thCenterDeg;    // threader "center" position (degrees from home)

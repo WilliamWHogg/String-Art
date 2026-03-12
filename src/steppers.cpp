@@ -9,7 +9,7 @@
 // ─── Runtime parameters (defaults from config.h) ───────────────────────────-
 uint16_t numPegs = DEFAULT_PEGS;
 double ttGearRatio = TT_GEAR_RATIO_DEFAULT;
-float ttBacklashDeg = TT_BACKLASH_DEG_DEFAULT;
+float ttOvershootDeg = TT_OVERSHOOT_DEG_DEFAULT;
 uint16_t ttMicrosteps = TT_MICROSTEPS_DEFAULT;
 uint16_t thMicrosteps = TH_MICROSTEPS_DEFAULT;
 uint32_t ttSpeed = TT_SPEED_DEFAULT;
@@ -29,7 +29,15 @@ static FastAccelStepper *thStepper = nullptr;
 // ─── Turntable position tracking ───────────────────────────────────────────
 static int32_t ttPositionSteps = 0; // absolute position in microsteps
 static double ttTrueDeg = 0.0;      // true turntable angle in degrees [0, 360)
-static int8_t ttLastDir = 0;        // last movement direction: +1 CW, -1 CCW, 0 unknown
+
+// ─── Turntable overshoot state machine ─────────────────────────────────────
+enum OvershootState
+{
+    OS_IDLE,
+    OS_PHASE1 // CCW overshoot in progress, waiting to start CW approach
+};
+static OvershootState osState = OS_IDLE;
+static int32_t osFinalPos = 0; // target position for CW approach (phase 2)
 
 // ─── Limit switch edge detection & debounce ────────────────────────────────
 static bool lastSwitchState = false;
@@ -190,22 +198,29 @@ void turntableGoToSlot(uint16_t slot)
     if (delta == 0)
         return;
 
-    // Backlash compensation: add extra steps when direction reverses
-    int8_t newDir = (delta > 0) ? 1 : -1;
-    int32_t backlashSteps = 0;
-    if (ttLastDir != 0 && newDir != ttLastDir && ttBacklashDeg > 0.0f)
+    // Overshoot compensation: if the shortest path is CCW, overshoot past
+    // the target then approach from the CW direction so the turntable
+    // always arrives via CW movement, eliminating backlash.
+    if (delta < 0 && ttOvershootDeg > 0.0f)
     {
-        backlashSteps = (int32_t)lround((double)ttBacklashDeg / 360.0 * ttStepsPerRev);
-        if (newDir < 0)
-            backlashSteps = -backlashSteps;
+        int32_t overshootSteps = (int32_t)lround((double)ttOvershootDeg / 360.0 * ttStepsPerRev);
+        // Phase 1: Move CCW past target by overshootSteps
+        int32_t overshootPos = ttPositionSteps + delta - overshootSteps;
+        ttStepper->moveTo(overshootPos);
+        // Store the final CW target for phase 2 (started by turntableOvershootPoll)
+        osFinalPos = overshootPos + overshootSteps;
+        osState = OS_PHASE1;
+        logMsg("TT: slot %u -> %u (%.3f deg, %ld steps CCW+overshoot)",
+               fromSlot, slot, ttTrueDeg, labs(delta));
     }
-    ttLastDir = newDir;
-
-    ttPositionSteps += delta + backlashSteps;
-    ttStepper->moveTo(ttPositionSteps);
-
-    logMsg("TT: slot %u -> %u (%.3f deg, %ld steps %s)",
-           fromSlot, slot, ttTrueDeg, labs(delta), delta > 0 ? "CW" : "CCW");
+    else
+    {
+        // CW move — no overshoot needed
+        ttPositionSteps += delta;
+        ttStepper->moveTo(ttPositionSteps);
+        logMsg("TT: slot %u -> %u (%.3f deg, %ld steps CW)",
+               fromSlot, slot, ttTrueDeg, labs(delta));
+    }
 }
 
 void turntableJog(float degrees)
@@ -221,18 +236,7 @@ void turntableJog(float degrees)
     if (steps == 0)
         return;
 
-    // Backlash compensation on direction reversal
-    int8_t newDir = (steps > 0) ? 1 : -1;
-    int32_t backlashSteps = 0;
-    if (ttLastDir != 0 && newDir != ttLastDir && ttBacklashDeg > 0.0f)
-    {
-        backlashSteps = (int32_t)lround((double)ttBacklashDeg / 360.0 * ttStepsPerRev);
-        if (newDir < 0)
-            backlashSteps = -backlashSteps;
-    }
-    ttLastDir = newDir;
-
-    ttPositionSteps += steps + backlashSteps;
+    ttPositionSteps += steps;
     ttStepper->moveTo(ttPositionSteps);
     logMsg("TT jog %.2f deg -> %.3f deg (%ld steps)", degrees, ttTrueDeg, steps);
 }
@@ -241,7 +245,6 @@ void turntableZero()
 {
     ttPositionSteps = 0;
     ttTrueDeg = 0.0;
-    ttLastDir = 0;
     ttStepper->setCurrentPosition(0);
     logMsg("TT zeroed at current position");
 }
@@ -405,10 +408,32 @@ void threaderHomePoll()
 
 // ─── General ────────────────────────────────────────────────────────────────
 
+bool turntableOvershootBusy()
+{
+    return osState != OS_IDLE;
+}
+
+void turntableOvershootPoll()
+{
+    if (osState != OS_PHASE1)
+        return;
+
+    // Wait for phase 1 (CCW overshoot) to finish
+    if (ttStepper && ttStepper->isRunning())
+        return;
+
+    // Phase 2: CW approach to exact target
+    ttPositionSteps = osFinalPos;
+    ttStepper->moveTo(ttPositionSteps);
+    osState = OS_IDLE;
+    logMsg("TT: overshoot CW approach complete");
+}
+
 bool steppersMoving()
 {
     return (ttStepper && ttStepper->isRunning()) ||
-           (thStepper && thStepper->isRunning());
+           (thStepper && thStepper->isRunning()) ||
+           osState != OS_IDLE;
 }
 
 void steppersPollLimitSwitch()
