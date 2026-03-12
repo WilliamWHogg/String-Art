@@ -137,10 +137,6 @@ button.blue{background:#2980b9}button.blue:hover{background:#1f6fa5}
 const E=id=>document.getElementById(id);
 let lastLogId=0;
 
-var _focused=new Set();
-document.querySelectorAll&&document.addEventListener('focusin',function(e){_focused.add(e.target.id);});
-document.addEventListener('focusout',function(e){_focused.delete(e.target.id);});
-
 function api(method,url,body){
  const opts={method};
  if(body!==undefined){opts.headers={'Content-Type':'application/json'};opts.body=JSON.stringify(body);}
@@ -211,8 +207,6 @@ function pollStatus(){
   E('btnPause').disabled=(s!==1);
   E('btnResume').disabled=(s!==2);
   E('btnStop').disabled=(s===0);
-  if(d.cmdDelay!==undefined && !_focused.has('dbgDelay')) E('dbgDelay').value=d.cmdDelay;
-  if(d.speedPct!==undefined && !_focused.has('dbgSpeed')) E('dbgSpeed').value=d.speedPct;
  });
 }
 
@@ -220,6 +214,7 @@ function pollLog(){
  api('GET','/api/log?since='+lastLogId).then(d=>{
   if(!d||!d.entries)return;
   const el=E('log');
+  const pinned=el.scrollTop+el.clientHeight>=el.scrollHeight-4;
   d.entries.forEach(e=>{
    const div=document.createElement('div');
    div.textContent=e.msg;
@@ -228,7 +223,7 @@ function pollLog(){
   });
   // Keep max ~500 entries in DOM
   while(el.children.length>500) el.removeChild(el.firstChild);
-  el.scrollTop=el.scrollHeight;
+  if(pinned) el.scrollTop=el.scrollHeight;
  });
 }
 
@@ -252,6 +247,8 @@ api('GET','/api/config').then(d=>{
  E('thUpPos').value=d.thUpDeg;
  E('thCenterPos').value=d.thCenterDeg;
  E('thDownPos').value=d.thDownDeg;
+ E('dbgDelay').value=d.cmdDelay!==undefined?d.cmdDelay:0;
+ E('dbgSpeed').value=d.speedPct!==undefined?d.speedPct:100;
 });
 </script>
 </body>

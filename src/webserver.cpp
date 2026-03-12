@@ -115,6 +115,8 @@ static void handleConfigGet(AsyncWebServerRequest *req)
     doc["thUpDeg"] = thUpDeg;
     doc["thCenterDeg"] = thCenterDeg;
     doc["thDownDeg"] = thDownDeg;
+    doc["cmdDelay"] = cmdDelaySec;
+    doc["speedPct"] = speedPct;
     String out;
     serializeJson(doc, out);
     req->send(200, "application/json", out);
