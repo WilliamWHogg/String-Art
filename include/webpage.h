@@ -52,6 +52,7 @@ button.blue{background:#2980b9}button.blue:hover{background:#1f6fa5}
 </div>
 <div class="status-row" style="margin-top:6px">
  <div class="status-item">TT Angle: <span id="stTTdeg">0.000</span>&deg;</div>
+ <div class="status-item">TT Steps: <span id="stTTsteps">0</span></div>
  <div class="status-item">TH Angle: <span id="stTHdeg">0.000</span>&deg;</div>
 </div>
 </div>
@@ -60,8 +61,7 @@ button.blue{background:#2980b9}button.blue:hover{background:#1f6fa5}
 <div class="card">
 <h2>Configuration</h2>
 <div class="row"><label>Number of Pegs</label><input type="number" id="cfgPegs" value="200" min="2" max="1024"><button class="blue" onclick="sendConfig()">Apply</button></div>
-<div class="row"><label>TT Gear Ratio</label><input type="number" id="cfgTTgr" value="16.0" step="0.001" min="0.1" max="100">
-<label>TT Overshoot (&deg;)</label><input type="number" id="cfgTTos" value="2.0" step="0.1" min="0" max="10"></div>
+<div class="row"><label>TT Gear Ratio</label><input type="number" id="cfgTTgr" value="16.0" step="0.001" min="0.1" max="100"></div>
 <div class="row"><label>TT Microsteps</label><select id="cfgTTms"><option>1</option><option>2</option><option>4</option><option>8</option><option>16</option><option>32</option></select>
 <label>TH Microsteps</label><select id="cfgTHms"><option>1</option><option>2</option><option selected>4</option><option>8</option><option>16</option><option>32</option></select></div>
 <div class="row"><label>TT Speed</label><input type="number" id="cfgTTspd" value="1500" min="1" max="50000">
@@ -147,7 +147,6 @@ function sendConfig(){
  api('POST','/api/config',{
   pegs:+E('cfgPegs').value,
   ttGearRatio:+E('cfgTTgr').value,
-  ttOvershoot:+E('cfgTTos').value,
   ttMs:+E('cfgTTms').value,
   thMs:+E('cfgTHms').value,
   ttSpeed:+E('cfgTTspd').value,
@@ -198,6 +197,7 @@ function pollStatus(){
   E('stPegs').textContent=d.pegs;
   E('stHome').textContent=d.homed?'Homed':'Not homed';
   E('stTTdeg').textContent=(d.ttDeg||0).toFixed(3);
+  E('stTTsteps').textContent=(d.ttSteps||0);
   E('stTHdeg').textContent=(d.thDeg||0).toFixed(3);
   const cnt=d.cmdCount||0,idx=d.cmdIndex||0;
   const pct=cnt?Math.round(idx*100/cnt):0;
@@ -236,7 +236,6 @@ api('GET','/api/config').then(d=>{
  if(!d)return;
  E('cfgPegs').value=d.pegs;
  E('cfgTTgr').value=d.ttGearRatio;
- E('cfgTTos').value=d.ttOvershoot;
  E('cfgTTms').value=d.ttMs;
  E('cfgTHms').value=d.thMs;
  E('cfgTTspd').value=d.ttSpeed;

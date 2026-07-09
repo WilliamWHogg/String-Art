@@ -1,8 +1,8 @@
 #pragma once
 
 // ─── WiFi Credentials (Station mode) ───────────────────────────────────────
-#define WIFI_SSID "VitaminWater"
-#define WIFI_PASS "onetwothreefour"
+#define WIFI_SSID "earth"
+#define WIFI_PASS "Bodega415"
 
 // ─── Pin Assignments ────────────────────────────────────────────────────────
 // Turntable stepper (TB6600 STEP/DIR)
@@ -20,11 +20,10 @@
 #define MOTOR_STEPS_PER_REV 200 // 1.8° per full step
 
 // Turntable
-#define TT_GEAR_RATIO_DEFAULT 16      // calibrated: 16-lobe cycloidal (nominal 16:1)
-#define TT_MICROSTEPS_DEFAULT 16      // full-step default (1/2/4/8/16/32)
-#define TT_SPEED_DEFAULT 1000         // steps/sec
-#define TT_ACCEL_DEFAULT 1500         // steps/sec²
-#define TT_OVERSHOOT_DEG_DEFAULT 2.0f // overshoot angle for CCW→CW approach (degrees)
+#define TT_GEAR_RATIO_DEFAULT 16 // calibrated: 16-lobe cycloidal (nominal 16:1)
+#define TT_MICROSTEPS_DEFAULT 16 // full-step default (1/2/4/8/16/32)
+#define TT_SPEED_DEFAULT 1000    // steps/sec
+#define TT_ACCEL_DEFAULT 1500    // steps/sec²
 
 // Threader
 #define TH_MICROSTEPS_DEFAULT 16
